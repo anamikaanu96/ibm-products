@@ -161,14 +161,12 @@ export const CoachmarkFixedExample = (args) => {
   };
 
   useEffect(() => {
-    // for modal only, "is-visible" triggers animation
     setFixedIsVisible(isOpen);
     if (isOpen) {
       // Initialize tabIndex for carousel items on open
       updateCarouselItemsTabIndex(0);
       nextRef?.current?.focus();
     } else {
-      // Return focus to the tagline button when closed
       setTimeout(() => {
         const taglineButton = document.getElementById('CoachmarkTagline');
         taglineButton?.focus();

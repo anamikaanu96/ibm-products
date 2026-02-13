@@ -301,13 +301,11 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
       const nestedItem = nestedItems.find((item) => item.id === openId);
 
       if (nestedItem?.type === 'carousel') {
-        // For carousel type, initialize tabIndex and focus Next button
         updateCarouselItemsTabIndex(0);
         setTimeout(() => {
           nextRef?.current?.focus();
         }, 100);
       } else {
-        // For simple type, focus the Done button
         setTimeout(() => {
           doneRef?.current?.focus();
         }, 100);
@@ -358,14 +356,10 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
 
       // Update tabIndex for carousel items
       updateCarouselItemsTabIndex(currentIndex);
-
-      // Focus the appropriate button after carousel navigation
       setTimeout(() => {
         if (currentIndex === lastIndex) {
-          // On last slide, focus the Done button
           doneRef.current?.focus();
         } else {
-          // On other slides, focus the Next button
           nextRef.current?.focus();
         }
       }, 0);
