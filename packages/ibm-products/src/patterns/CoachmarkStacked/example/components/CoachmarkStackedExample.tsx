@@ -78,6 +78,13 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
   const [parentHeight, setParentHeight] = useState(0);
   const stackHomeContentRef = useRef(null);
   const stackedCoachmarkContentRefs = useRef([]);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const doneRef = useRef<HTMLButtonElement>(null);
+  const carouselItemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const parentButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>(
+    {}
+  );
+  const lastOpenIdRef = useRef<number>(0);
 
   const blockClass = `coachmark-stacked-home`;
   const stackedCoachmark = `stacked-coachmark`;
@@ -106,9 +113,10 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
       type: 'simple',
       button: (
         <Button
+          ref={doneRef}
           size="sm"
           onClick={(e) => {
-            setOpenId(null);
+            setOpenId(0);
             e.stopPropagation();
           }}
         >
@@ -230,13 +238,13 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
     },
   ];
 
-  const handleClose = (e) => {
-    e.stopPropagation();
+  const handleClose = (e?) => {
+    e?.stopPropagation();
     setIsOpen(false);
   };
 
   const handleCloseCarousel = (e) => {
-    setOpenId(null);
+    setOpenId(0);
     carouselInit.current.reset();
     e.stopPropagation();
   };
@@ -244,6 +252,86 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
   const handleTaglineClick = () => {
     setIsOpen((isOpen) => !isOpen);
   };
+
+  //get all focusable elements within a container
+  const getFocusableElements = (container: HTMLElement) => {
+    return container.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]'
+    );
+  };
+
+  const updateCarouselItemsTabIndex = useCallback((activeIndex: number) => {
+    carouselItemsRef.current.forEach((item, idx) => {
+      if (!item) {return;}
+
+      let isActive;
+      if (activeIndex === idx) {
+        isActive = true;
+      }
+
+      item.setAttribute('aria-hidden', String(!isActive));
+      const focusableElements = getFocusableElements(item);
+
+      //For active item: make elements focusable (tabIndex=0)
+      //For inactive items: make elements NOT focusable (tabIndex=-1)
+      focusableElements.forEach((el) => {
+        (el as HTMLElement).tabIndex = isActive ? 0 : -1;
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    // When a child coachmark is active, disable focus on parent coachmark
+    // When no child is active, enable focus on parent coachmark
+    if (stackHomeContentRef.current) {
+      const parentCoachmark = stackHomeContentRef.current;
+      const focusableElements = getFocusableElements(parentCoachmark);
+
+      focusableElements.forEach((el) => {
+        // If a child is open (openId > 0), make parent elements not focusable
+        // If no child is open (openId === 0 or null), make parent elements focusable
+        (el as HTMLElement).tabIndex = openId > 0 ? -1 : 0;
+      });
+    }
+
+    if (openId > 0) {
+      lastOpenIdRef.current = openId;
+      const nestedItem = nestedItems.find((item) => item.id === openId);
+
+      if (nestedItem?.type === 'carousel') {
+        // For carousel type, initialize tabIndex and focus Next button
+        updateCarouselItemsTabIndex(0);
+        setTimeout(() => {
+          nextRef?.current?.focus();
+        }, 100);
+      } else {
+        // For simple type, focus the Done button
+        setTimeout(() => {
+          doneRef?.current?.focus();
+        }, 100);
+      }
+    } else if ((openId === 0 || openId === null) && lastOpenIdRef.current > 0) {
+      // Child was closed, return focus to the parent button that opened it
+      setTimeout(() => {
+        const buttonToFocus = parentButtonRefs.current[lastOpenIdRef.current];
+        if (buttonToFocus) {
+          buttonToFocus.focus();
+        }
+        lastOpenIdRef.current = 0;
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openId, updateCarouselItemsTabIndex]);
+
+  useEffect(() => {
+    // When parent coachmark closes, return focus to tagline button
+    if (!isOpen) {
+      setTimeout(() => {
+        const taglineButton = document.getElementById('CoachmarkTagline');
+        taglineButton?.focus();
+      }, 0);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (carouselContainerRef && carouselContainerRef.current) {
@@ -265,9 +353,23 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
     ({ currentIndex, lastIndex }) => {
       setCurrentViewIndex(currentIndex);
       setLastViewIndex(lastIndex);
+
+      // Update tabIndex for carousel items
+      updateCarouselItemsTabIndex(currentIndex);
+
+      // Focus the appropriate button after carousel navigation
+      setTimeout(() => {
+        if (currentIndex === lastIndex) {
+          // On last slide, focus the Done button
+          doneRef.current?.focus();
+        } else {
+          // On other slides, focus the Next button
+          nextRef.current?.focus();
+        }
+      }, 0);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openId]
+    [openId, updateCarouselItemsTabIndex]
   );
 
   const onNext = (e) => {
@@ -392,6 +494,9 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
                 <React.Fragment key={item.id}>
                   <li key={item.id}>
                     <Button
+                      ref={(el) => {
+                        parentButtonRefs.current[item.id] = el;
+                      }}
                       kind="ghost"
                       size="sm"
                       onClick={() => {
@@ -420,7 +525,7 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
           key={item.id}
           open={openId === item.id}
           onClose={(e) => {
-            setOpenId(null);
+            setOpenId(0);
             e.stopPropagation();
           }}
           align="top"
@@ -464,8 +569,13 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
                           ref={carouselContainerRef}
                           className="exampleCarouselWrapper"
                         >
-                          {nested.pages.map((page) => (
-                            <div key={page.id}>
+                          {nested.pages.map((page, index) => (
+                            <div
+                              key={page.id}
+                              ref={(el) => {
+                                carouselItemsRef.current[index] = el;
+                              }}
+                            >
                               <h2>{page.title}</h2>
                               <p>{page.text}</p>
                               <p>{page.button}</p>
@@ -506,6 +616,7 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
 
                             {lastViewIndex !== currentViewIndex ? (
                               <Button
+                                ref={nextRef}
                                 size="sm"
                                 iconDescription="Next"
                                 onClick={onNext}
@@ -513,7 +624,11 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
                                 Next
                               </Button>
                             ) : (
-                              <Button size="sm" onClick={handleCloseCarousel}>
+                              <Button
+                                ref={doneRef}
+                                size="sm"
+                                onClick={handleCloseCarousel}
+                              >
                                 Done
                               </Button>
                             )}
