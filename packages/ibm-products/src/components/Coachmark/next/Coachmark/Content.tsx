@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { blockClass } from './context';
 
-export interface ContentBodyProps {
+export interface ContentProps {
   /**
    * Provide the optional content for header section and will be render after header titles and before progress indicator.
    * People can make use of this if they want to have custom header.
@@ -27,21 +27,21 @@ export type EnrichedChildren = {
   children: ReactNode;
 };
 
-export const ContentBody = forwardRef<HTMLDivElement, ContentBodyProps>(
+export const Content = forwardRef<HTMLDivElement, ContentProps>(
   (props, ref) => {
     const { className = '', children, ...rest } = props;
-    const ContentBodyBlockClass = `${blockClass}--content-body`;
+    const ContentBlockClass = `${blockClass}--content-body`;
     return (
-      <div ref={ref} className={cx(ContentBodyBlockClass, className)}>
+      <div ref={ref} className={cx(ContentBlockClass, className)}>
         {children}
       </div>
     );
   }
 );
 
-export default ContentBody;
+export default Content;
 
-ContentBody.propTypes = {
+Content.propTypes = {
   /**
    * Provide the optional content for header section and will be render after header titles and before progress indicator.
    * People can make use of this if they want to have custom header.

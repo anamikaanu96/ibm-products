@@ -7,29 +7,27 @@
 
 import { createContext, RefObject } from 'react';
 import { pkg } from '../../../../settings';
-import { NewPopoverAlignment } from '@carbon/react';
 
 interface CoachmarkContextType {
   onClose?: () => void;
   open?: boolean;
-  setOpen: (value: boolean) => void;
-  align?: NewPopoverAlignment;
-  triggerRef: RefObject<HTMLElement | null>;
-  position: { x: number; y: number };
-  contentRef: HTMLElement | null;
-  setContentRef: (value: any) => void;
   floating?: boolean;
+  contentId?: string;
+  labelId?: string;
+  setOpen: (value: boolean) => void;
+  align?: string;
+  triggerRef?: RefObject<HTMLElement>;
+  position?: { x: number; y: number };
+  contentRef?: HTMLElement | null;
+  setContentRef?: (ref: HTMLElement | null) => void;
 }
 
 export const CoachmarkContext = createContext<CoachmarkContextType>({
   open: false,
-  setOpen: () => {},
-  align: 'bottom',
-  triggerRef: { current: null },
-  position: { x: 0, y: 0 },
-  contentRef: null,
-  setContentRef: (value: boolean) => {},
   floating: false,
+  contentId: undefined,
+  labelId: undefined,
+  setOpen: () => {},
 });
 
 export const blockClass = `${pkg.prefix}--coachmark__next`;

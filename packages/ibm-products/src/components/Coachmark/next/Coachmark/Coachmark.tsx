@@ -8,25 +8,27 @@
 import React, {
   FC,
   ForwardRefExoticComponent,
+  ReactElement,
   ReactNode,
   RefAttributes,
   RefObject,
   forwardRef,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
+import { useIsomorphicEffect } from '../../../../global/js/hooks';
 
 // Other standard imports.
 import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { getDevtoolsProps } from '../../../../global/js/utils/devtools';
 import { CoachmarkContext, blockClass } from './context';
-import CoachmarkContent, { CoachmarkContentProps } from './CoachmarkContent';
-import { NewPopoverAlignment } from '@carbon/react';
-import { useIsomorphicEffect } from '../../../../global/js/hooks';
-import { ContentHeader, ContentHeaderProps } from './ContentHeader';
-import { ContentBody, ContentBodyProps } from './ContentBody';
+import { Popover, PopoverContent, NewPopoverAlignment } from '@carbon/react';
+import { Header, HeaderProps } from './Header';
+import { Content, ContentProps } from './Content';
+import { PopoverTriggerWithRef } from './PopoverTriggerWithRef';
 
 // The block part of our conventional BEM class names (blockClass__E--M).
 
@@ -45,10 +47,15 @@ const componentName = 'Coachmark';
 
 export interface CoachmarkPropsNext {
   /**
-   * Provide the contents of the Coachmark.
+   * The trigger element or ref to an existing element.
+   * - ReactElement: Coachmark will render and manage the trigger
+   * - RefObject: Coachmark will attach to an existing element in the DOM
+   */
+  trigger: ReactElement | RefObject<HTMLElement>;
+  /**
+   * Provide the contents of the Coachmark (typically Coachmark.Content).
    */
   children: ReactNode;
-
   /**
    * Provide an optional class to be applied to the containing node.
    */
@@ -66,7 +73,7 @@ export interface CoachmarkPropsNext {
    */
   align?: NewPopoverAlignment;
   /**
-   * Fine tune the position of the target in pixels.
+   * Fine tune the position of the target in pixels. Applies only to Beacons.
    */
   position?: { x: number; y: number };
   /**
@@ -75,15 +82,12 @@ export interface CoachmarkPropsNext {
   floating?: boolean;
 }
 
-type CoachmarkContentComponent = FC<CoachmarkContentProps> & {
-  Header: FC<ContentHeaderProps>;
-  Body: FC<ContentBodyProps>;
-};
 // Define the type for Coachmark, extending it to include Trigger and Content
 export type CoachmarkComponent = ForwardRefExoticComponent<
   CoachmarkPropsNext & RefAttributes<HTMLDivElement>
 > & {
-  Content: CoachmarkContentComponent;
+  Header: FC<HeaderProps>;
+  Content: FC<ContentProps>;
 };
 
 /**
@@ -94,17 +98,21 @@ export type CoachmarkComponent = ForwardRefExoticComponent<
 export const Coachmark = forwardRef<HTMLDivElement, CoachmarkPropsNext>(
   (props, ref) => {
     const {
+      trigger,
       children,
       className,
       onClose,
       align = 'bottom',
-      open,
+      open = false,
       position = { x: 0, y: 0 },
-      floating,
+      floating = false,
       ...rest
     } = props;
-    const triggerRef = useRef<HTMLElement>(null);
-    const internalRef = useRef<HTMLDivElement | null>(null);
+
+    const contentId = useId();
+    const labelId = useId();
+    const triggerWrapperRef = useRef<HTMLDivElement>(null);
+
     const [contentRef, setContentRef] = useState<HTMLElement | null>(null);
     const [openState, setOpenState] = useState(false);
 
@@ -119,83 +127,186 @@ export const Coachmark = forwardRef<HTMLDivElement, CoachmarkPropsNext>(
 
     const currentOpen = open ?? openState;
 
+    // Track the last click target to handle external trigger clicks
+    const lastClickTargetRef = useRef<EventTarget | null>(null);
+
+    // Determine if trigger is a ref or an element
+    const isRefTrigger =
+      trigger && typeof trigger === 'object' && 'current' in trigger;
+    const triggerRef = isRefTrigger
+      ? (trigger as RefObject<HTMLElement>)
+      : null;
+    const triggerElement = !isRefTrigger ? (trigger as ReactElement) : null;
+
+    // Enhance external trigger with ARIA attributes
     useEffect(() => {
-      const container = internalRef.current;
-      if (!container) {
+      if (!triggerRef?.current) {
         return;
       }
 
-      const focusableElements = Array.from(
-        container.querySelectorAll('*')
-      ) as HTMLElement[];
+      const element = triggerRef.current;
 
-      const firstFocusable = focusableElements.find(
-        (el) => el.tabIndex >= 0 && !el.hasAttribute('disabled')
-      );
+      // Store original attributes
+      const originalExpanded = element.getAttribute('aria-expanded');
+      const originalHaspopup = element.getAttribute('aria-haspopup');
+      const originalControls = element.getAttribute('aria-controls');
 
-      if (firstFocusable) {
-        triggerRef.current = firstFocusable;
+      // Set ARIA attributes
+      element.setAttribute('aria-expanded', String(open));
+      element.setAttribute('aria-haspopup', 'dialog');
+      if (open) {
+        element.setAttribute('aria-controls', contentId);
       }
-    }, [children]);
 
+      // Cleanup: restore original attributes
+      return () => {
+        if (originalExpanded !== null) {
+          element.setAttribute('aria-expanded', originalExpanded);
+        } else {
+          element.removeAttribute('aria-expanded');
+        }
+        if (originalHaspopup !== null) {
+          element.setAttribute('aria-haspopup', originalHaspopup);
+        } else {
+          element.removeAttribute('aria-haspopup');
+        }
+        if (originalControls !== null) {
+          element.setAttribute('aria-controls', originalControls);
+        } else {
+          element.removeAttribute('aria-controls');
+        }
+      };
+    }, [open, contentId, triggerRef]);
+
+    // Focus management - return focus to trigger when closed
     useEffect(() => {
-      const el = triggerRef.current;
-      if (el) {
-        el.setAttribute('aria-expanded', String(!!open));
+      if (!open && triggerRef?.current) {
+        triggerRef.current.focus();
       }
-    }, [open]);
+    }, [open, triggerRef]);
 
+    // Capture click events globally to track what was clicked
+    useEffect(() => {
+      const handleGlobalClick = (e: MouseEvent) => {
+        lastClickTargetRef.current = e.target;
+      };
+
+      // Use capture phase to get the click before anyone else
+      document.addEventListener('click', handleGlobalClick, true);
+
+      return () => {
+        document.removeEventListener('click', handleGlobalClick, true);
+      };
+    }, []);
+
+    // Apply position offset using useIsomorphicEffect
     useIsomorphicEffect(() => {
       const { x = 0, y = 0 } = position ?? {};
-      const el = internalRef.current;
 
-      if (el && (x !== 0 || y !== 0)) {
+      // For external trigger (ref), apply position to the actual trigger element
+      if (triggerRef?.current && (x !== 0 || y !== 0)) {
+        triggerRef.current.style.transform = `translate(${x}px, ${y}px)`;
+      }
+
+      // For inline trigger element, apply to wrapper
+      const el = triggerWrapperRef.current;
+      if (el && !triggerRef && (x !== 0 || y !== 0)) {
         el.style.transform = `translate(${x}px, ${y}px)`;
       }
-    }, [position]);
+    }, [position, open, triggerRef]);
 
-    const setRef = (node: HTMLDivElement | null) => {
-      internalRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref) {
-        (ref as RefObject<HTMLDivElement | null>).current = node;
-      }
-    };
+    // Prepare trigger element based on type
+    let triggerContent: ReactNode = null;
+    let handleRequestClose = onClose;
+
+    if (triggerRef) {
+      // Custom onRequestClose for external trigger
+      handleRequestClose = () => {
+        const trigger = triggerRef.current;
+        const clickTarget = lastClickTargetRef.current;
+
+        if (trigger && clickTarget && trigger.contains(clickTarget as Node)) {
+          return; // Click was on trigger, don't close
+        }
+
+        onClose?.();
+      };
+
+      triggerContent = (
+        <PopoverTriggerWithRef
+          ref={triggerWrapperRef}
+          targetRef={triggerRef}
+          open={open}
+        />
+      );
+    } else if (triggerElement) {
+      // Enhanced props with ARIA attributes
+      const enhancedProps = {
+        'aria-expanded': open,
+        'aria-haspopup': 'dialog' as const,
+        'aria-controls': open ? contentId : undefined,
+      };
+
+      triggerContent = (
+        <div ref={triggerWrapperRef}>
+          {React.cloneElement(triggerElement, enhancedProps)}
+        </div>
+      );
+    }
+
+    if (!triggerContent) {
+      return null;
+    }
 
     return (
       <CoachmarkContext.Provider
         value={{
-          onClose,
           open: currentOpen,
+          onClose,
+          floating,
+          contentId,
+          labelId,
           setOpen,
-          align,
-          triggerRef,
-          position,
           contentRef,
           setContentRef,
-          floating,
         }}
       >
-        <div
+        <Popover
+          ref={ref}
+          open={open}
+          onRequestClose={handleRequestClose}
+          align={align}
+          autoAlign={true}
+          caret={!floating}
+          highContrast={true}
+          dropShadow={true}
+          className={cx(blockClass, className, {
+            [`${blockClass}--floating`]: floating,
+          })}
           {...rest}
-          className={cx(
-            blockClass, // Apply the block class to the main HTML element
-            className, // Apply any supplied class names to the main HTML element.
-            { [`${blockClass}--floating`]: floating }
-          )}
-          ref={setRef}
           {...getDevtoolsProps(componentName)}
         >
-          <div className={`${blockClass}--container`}>{children}</div>
-        </div>
+          {triggerContent}
+
+          <PopoverContent
+            ref={setContentRef}
+            id={contentId}
+            role="dialog"
+            aria-modal="false"
+            aria-labelledby={labelId}
+            className={`${blockClass}--coachmark-content`}
+          >
+            {children}
+          </PopoverContent>
+        </Popover>
       </CoachmarkContext.Provider>
     );
   }
 ) as CoachmarkComponent;
-Coachmark.Content = CoachmarkContent;
-Coachmark.Content.Header = ContentHeader;
-Coachmark.Content.Body = ContentBody;
+
+Coachmark.Header = Header;
+Coachmark.Content = Content;
+
 // The display name of the component, used by React. Note that displayName
 // is used in preference to relying on function.name.
 Coachmark.displayName = componentName;
@@ -209,7 +320,7 @@ Coachmark.propTypes = {
    */
   align: PropTypes.string,
   /**
-   * Provide the contents of the CoachmarkV2.
+   * Provide the contents of the Coachmark.
    */
   children: PropTypes.node.isRequired,
   /**
@@ -236,4 +347,9 @@ Coachmark.propTypes = {
     x: PropTypes.number,
     y: PropTypes.number,
   }),
+  /**
+   * The trigger element or ref to an existing element.
+   */
+  trigger: PropTypes.oneOfType([PropTypes.element, PropTypes.object])
+    .isRequired,
 };

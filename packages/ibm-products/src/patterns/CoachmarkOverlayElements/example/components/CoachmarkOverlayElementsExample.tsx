@@ -9,11 +9,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Theme } from '@carbon/react';
 import {
   preview__CoachmarkBeacon as CoachmarkBeacon,
-  preview__Coachmark as Coachmark,
+  // preview__Coachmark as Coachmark,
 } from '@carbon/ibm-products';
 import { initCarousel } from '@carbon/utilities';
 import sampleImage from '../assets/sample-image.png';
-
+import { Coachmark } from '../../../../components/Coachmark/next/Coachmark/index.js';
 //fetching theme
 function useCarbonTheme() {
   const [themeValue, setThemeValue] = useState(
@@ -130,8 +130,8 @@ export const CoachmarkOverlayElementsExample = (args) => {
           buttonProps={{ onClick: handleBeaconClick, id: 'CoachmarkBtn' }}
         ></CoachmarkBeacon>
         <Coachmark.Content highContrast={true}>
-          <Coachmark.Content.Header closeIconDescription="Close"></Coachmark.Content.Header>
-          <Coachmark.Content.Body>
+          <Coachmark.ContentHeader closeIconDescription="Close"></Coachmark.ContentHeader>
+          <Coachmark.ContentBody>
             <div>
               <img
                 src={sampleImage}
@@ -188,7 +188,7 @@ export const CoachmarkOverlayElementsExample = (args) => {
                 )}
               </div>
             </div>
-          </Coachmark.Content.Body>
+          </Coachmark.ContentBody>
         </Coachmark.Content>
       </Coachmark>
     </Theme>

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Coachmark } from '.';
 import mdx from './Coachmark.mdx';
 import styles from './_storybook-styles.scss?inline';
@@ -121,19 +121,19 @@ const TooltipTemplate = ({ ...args }, context) => {
           position={{ x: 151, y: 155 }}
           open={isOpen}
           onClose={handleClose}
+          trigger={
+            <CoachmarkBeacon
+              label="Show information"
+              buttonProps={{ onClick: handleBeaconClick }}
+            />
+          }
           {...args}
         >
-          <CoachmarkBeacon
-            label="Show information"
-            buttonProps={{ onClick: handleBeaconClick, id: 'CoachmarkBtn' }}
-          ></CoachmarkBeacon>
-          <Coachmark.Content highContrast={true}>
-            <Coachmark.Content.Header closeIconDescription="Close"></Coachmark.Content.Header>
-            <Coachmark.Content.Body>
-              <h2>Hello World</h2>
-              <p>this is a description test</p>
-              <Button size="sm">Done</Button>
-            </Coachmark.Content.Body>
+          <Coachmark.Header closeIconDescription="Close" />
+          <Coachmark.Content>
+            <h2>Hello World</h2>
+            <p>this is a description test</p>
+            <Button size="sm">Done</Button>
           </Coachmark.Content>
         </Coachmark>
       </main>
@@ -161,31 +161,77 @@ const FloatingTemplate = ({ ...args }, context) => {
           open={isOpen}
           onClose={handleClose}
           floating={true}
+          position={{ x: 151, y: 155 }}
+          trigger={
+            <Button
+              kind="tertiary"
+              size="md"
+              label="Show information"
+              renderIcon={Crossroads}
+              onClick={handleButtonClick}
+            >
+              Show information
+            </Button>
+          }
           {...args}
         >
-          <Button
-            id="CoachmarkBtn"
-            kind="tertiary"
-            size="md"
-            label="Show information"
-            renderIcon={Crossroads}
-            onClick={handleButtonClick}
-          >
-            Show information
-          </Button>
-          <Coachmark.Content highContrast={true}>
-            <Coachmark.Content.Header
-              closeIconDescription="Close"
-              dragIconDescription="Drag"
-            ></Coachmark.Content.Header>
-            <Coachmark.Content.Body>
-              <h2>Hello World</h2>
-              <p>this is a description test</p>
-              <Button size="sm">Done</Button>
-            </Coachmark.Content.Body>
+          <Coachmark.Header
+            closeIconDescription="Close"
+            dragIconDescription="Drag"
+          />
+          <Coachmark.Content>
+            <h2>Hello World</h2>
+            <p>this is a description test</p>
+            <Button size="sm">Done</Button>
           </Coachmark.Content>
         </Coachmark>
       </main>
+    </Theme>
+  );
+};
+
+// External trigger using ref
+const ExternalTriggerTemplate = ({ ...args }, context) => {
+  const sbDocs = context.viewMode !== 'docs';
+  const carbonTheme = sbDocs ? useCarbonTheme() : 'white';
+  const [isOpen, setIsOpen] = useState(true);
+  const buttonRef = useRef(null);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  const handleButtonClick = () => {
+    setIsOpen((isOpen) => !isOpen);
+  };
+
+  return (
+    <Theme theme={carbonTheme}>
+      <Button
+        kind="tertiary"
+        size="md"
+        label="Show information"
+        renderIcon={Crossroads}
+        onClick={handleButtonClick}
+        ref={buttonRef}
+      >
+        Show information
+      </Button>
+
+      <Coachmark
+        open={isOpen}
+        onClose={handleClose}
+        trigger={buttonRef}
+        position={{ x: 151, y: 155 }}
+        {...args}
+      >
+        <Coachmark.Header closeIconDescription="Close" />
+        <Coachmark.Content>
+          <h2>Hello World</h2>
+          <p>this is a description test</p>
+          <Button size="sm">Done</Button>
+        </Coachmark.Content>
+      </Coachmark>
     </Theme>
   );
 };
@@ -200,6 +246,11 @@ Tooltip.args = {
 };
 
 export const Floating = FloatingTemplate.bind({});
+
+export const ExternalTrigger = ExternalTriggerTemplate.bind({});
+ExternalTrigger.args = {
+  align: 'top',
+};
 Floating.args = {
   align: 'bottom',
 };

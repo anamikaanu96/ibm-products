@@ -17,8 +17,9 @@ import React, {
 import { Button, Theme, Link as CarbonLink } from '@carbon/react';
 import {
   preview__CoachmarkTagline as CoachmarkTagline,
-  preview__Coachmark as Coachmark,
+  // preview__Coachmark as Coachmark,
 } from '@carbon/ibm-products';
+import { Coachmark } from '../../../../components/Coachmark/next/Coachmark/index.js';
 import { initCarousel } from '@carbon/utilities';
 import { Idea } from '@carbon/react/icons';
 import cx from 'classnames';
@@ -376,8 +377,8 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
           highContrast={true}
           ref={stackHomeContentRef}
         >
-          <Coachmark.Content.Header closeIconDescription="Close"></Coachmark.Content.Header>
-          <Coachmark.Content.Body className={`${blockClass}__body`}>
+          <Coachmark.ContentHeader closeIconDescription="Close"></Coachmark.ContentHeader>
+          <Coachmark.ContentBody className={`${blockClass}__body`}>
             <div className={`${blockClass}-element`}>
               <Idea size={20} className={`${blockClass}__icon-idea`} />
             </div>
@@ -412,7 +413,7 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
               Close
             </Button>
             <br></br>
-          </Coachmark.Content.Body>
+          </Coachmark.ContentBody>
         </Coachmark.Content>
       </Coachmark>
       {items.map((item) => (
@@ -434,8 +435,8 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
             }}
             className={cx(`${elementBlockClass}`)}
           >
-            <Coachmark.Content.Header closeIconDescription="Close" />
-            <Coachmark.Content.Body>
+            <Coachmark.ContentHeader closeIconDescription="Close" />
+            <Coachmark.ContentBody>
               {nestedItems
                 .filter((nested) => nested.id === item.id)
                 .map((nested) => {
@@ -524,7 +525,7 @@ export const CoachmarkStackedExample = ({ prefix = 'c4p', ...args }) => {
                   }
                   return null;
                 })}
-            </Coachmark.Content.Body>
+            </Coachmark.ContentBody>
           </Coachmark.Content>
         </Coachmark>
       ))}

@@ -41,13 +41,23 @@ $block-class-next: #{c4p-settings.$pkg-prefix}--coachmark__next;
 
 @include block-wrap(#{$block-class}__next) {
   &.#{$block-class-next}--floating {
-    span:has(> div > .#{$block-class-next}--content-header--drag-icon) {
+    span:has(> div > .#{$block-class-next}--header--drag-icon) {
       margin-inline-end: auto;
     }
   }
-  .#{$block-class-next}--content-header--is-dragging {
+  .#{$block-class-next}--header--is-dragging {
     border-radius: 0;
-    box-shadow: 0 0 0 $spacing-02 $icon-inverse;
-    outline: $spacing-01 solid $background-inverse;
+    box-shadow:
+      0 0 0 $spacing-01 $icon-inverse,
+      0 0 0 calc(#{$spacing-01} + #{$spacing-01}) $background-inverse;
+  }
+
+  .#{$block-class-next}--content-body {
+    padding: 0 $spacing-05 $spacing-05;
+  }
+
+  .#{$block-class-next}--header {
+    display: flex;
+    justify-content: flex-end;
   }
 }

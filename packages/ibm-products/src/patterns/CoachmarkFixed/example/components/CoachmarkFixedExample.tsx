@@ -13,10 +13,9 @@ import React, {
   useState,
 } from 'react';
 import { Button, Theme, Link as CarbonLink } from '@carbon/react';
-import {
-  preview__CoachmarkTagline as CoachmarkTagline,
-  preview__Coachmark as Coachmark,
-} from '@carbon/ibm-products';
+import { preview__CoachmarkTagline as CoachmarkTagline } from '@carbon/ibm-products';
+
+import { Coachmark } from '../../../../components/Coachmark/next/Coachmark/index.js';
 import { InitCarousel, initCarousel } from '@carbon/utilities';
 
 //fetching theme
@@ -143,74 +142,84 @@ export const CoachmarkFixedExample = (args) => {
 
   return (
     <Theme theme={carbonTheme}>
-      <Coachmark open={isOpen} onClose={handleClose} align="top" {...args}>
-        <CoachmarkTagline
-          title="Why are there two types of severity scores?"
-          closeIconDescription="Close"
-          isOpen={isOpen}
-          buttonProps={{ onClick: handleTaglineClick, id: 'CoachmarkTagline' }}
-        ></CoachmarkTagline>
-        <Coachmark.Content
-          className={fixedIsVisible && `is-visible`}
-          highContrast={true}
-        >
-          <Coachmark.Content.Header closeIconDescription="Close"></Coachmark.Content.Header>
-          <Coachmark.Content.Body>
-            <div ref={carouselContainerRef} className="exampleCarouselWrapper">
-              {items.map((item) => (
-                <div key={item.id}>
-                  <h2>{item.title}</h2>
-                  <p>{item.text}</p>
-                  <br></br>
-                  <p>{item.button}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className={'carouselControlWrapper__footer'}>
-              <div className={'carouselControlWrapper--controls-progress'}>
-                {items.map((item, index) => {
-                  if (
-                    carouselInit.current?.getActiveItem?.()?.index === index
-                  ) {
-                    return (
-                      <span key={item.id}>
-                        {`${carouselInit.current?.getActiveItem?.()?.index + 1} / ${items.length}`}
-                      </span>
-                    );
-                  }
-                })}
+      <Coachmark
+        className={fixedIsVisible && `is-visible`}
+        open={isOpen}
+        onClose={handleClose}
+        align="top"
+        highContrast={true}
+        {...args}
+        trigger={
+          <CoachmarkTagline
+            title="Why are there two types of severity scores?"
+            closeIconDescription="Close"
+            isOpen={isOpen}
+            buttonProps={{
+              onClick: handleTaglineClick,
+              id: 'CoachmarkTagline',
+            }}
+          ></CoachmarkTagline>
+        }
+      >
+        {/* <Coachmark.Content
+         
+         
+        > */}
+        <Coachmark.Header closeIconDescription="Close"></Coachmark.Header>
+        <Coachmark.Content>
+          <div ref={carouselContainerRef} className="exampleCarouselWrapper">
+            {items.map((item) => (
+              <div key={item.id}>
+                <h2>{item.title}</h2>
+                <p>{item.text}</p>
+                <br></br>
+                <p>{item.button}</p>
               </div>
-              <div className={'carouselControlWrapper--buttons'}>
-                {currentViewIndex !== 0 && (
-                  <Button
-                    size="sm"
-                    iconDescription="Previous"
-                    kind="ghost"
-                    onClick={onPrev}
-                  >
-                    Back
-                  </Button>
-                )}
+            ))}
+          </div>
 
-                {lastViewIndex !== currentViewIndex ? (
-                  <Button
-                    ref={nextRef}
-                    size="sm"
-                    iconDescription="Next"
-                    onClick={onNext}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button size="sm" onClick={handleClose}>
-                    Done
-                  </Button>
-                )}
-              </div>
+          <div className={'carouselControlWrapper__footer'}>
+            <div className={'carouselControlWrapper--controls-progress'}>
+              {items.map((item, index) => {
+                if (carouselInit.current?.getActiveItem?.()?.index === index) {
+                  return (
+                    <span key={item.id}>
+                      {`${carouselInit.current?.getActiveItem?.()?.index + 1} / ${items.length}`}
+                    </span>
+                  );
+                }
+              })}
             </div>
-          </Coachmark.Content.Body>
+            <div className={'carouselControlWrapper--buttons'}>
+              {currentViewIndex !== 0 && (
+                <Button
+                  size="sm"
+                  iconDescription="Previous"
+                  kind="ghost"
+                  onClick={onPrev}
+                >
+                  Back
+                </Button>
+              )}
+
+              {lastViewIndex !== currentViewIndex ? (
+                <Button
+                  ref={nextRef}
+                  size="sm"
+                  iconDescription="Next"
+                  onClick={onNext}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button size="sm" onClick={handleClose}>
+                  Done
+                </Button>
+              )}
+            </div>
+          </div>
         </Coachmark.Content>
+        {/* </Coachmark.Content> */}
       </Coachmark>
     </Theme>
   );
