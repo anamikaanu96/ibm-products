@@ -32,6 +32,9 @@ const DraggableDiv = () => {
   useEffect(() => {
     const dialogElement = dialogRef.current;
     if (dialogElement && headerRef.current && dragRef.current) {
+      // Set initial transform with translate to test cumulative positioning
+      dialogElement.style.transform = 'translate(50px, 30px)';
+
       const draggable = makeDraggable({
         el: dialogElement,
         dragHandle: headerRef.current,
@@ -204,4 +207,116 @@ const DraggablePopoverTemplate = () => {
 
 export const DraggableCustomDiv = DraggableDiv.bind({});
 
+const DraggableWithTransformsTemplate = () => {
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const boxElement = boxRef.current;
+    if (boxElement && headerRef.current && dragRef.current) {
+      // Set initial transform with scale and rotate
+      boxElement.style.transform = 'scale(1.2) rotate(5deg)';
+
+      const draggable = makeDraggable({
+        el: boxElement,
+        dragHandle: headerRef.current,
+        focusableDragHandle: dragRef.current,
+      });
+
+      const onDragStart = () => {
+        if (boxElement) {
+          boxElement.classList.add('is-dragging');
+          boxElement.setAttribute(
+            'aria-label',
+            'Picked up the draggable box with transforms'
+          );
+        }
+      };
+
+      const onDragEnd = () => {
+        if (boxElement) {
+          boxElement.classList.remove('is-dragging');
+          boxElement.setAttribute(
+            'aria-label',
+            'Draggable box with transforms was dropped'
+          );
+        }
+      };
+
+      boxElement.addEventListener('dragstart', onDragStart);
+      boxElement.addEventListener('dragend', onDragEnd);
+
+      return () => {
+        boxElement.removeEventListener('dragstart', onDragStart);
+        boxElement.removeEventListener('dragend', onDragEnd);
+        draggable.cleanup();
+      };
+    }
+  }, []);
+
+  return (
+    <div className="mt-10 flex justify-center">
+      <div
+        ref={boxRef}
+        className="draggable-box"
+        style={{
+          position: 'absolute',
+          width: '300px',
+          padding: '20px',
+          backgroundColor: '#f4f4f4',
+          border: '2px solid #0f62fe',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        }}
+      >
+        <header
+          ref={headerRef}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '16px',
+            padding: '8px',
+            backgroundColor: '#e0e0e0',
+            borderRadius: '4px',
+          }}
+        >
+          <Button
+            kind="ghost"
+            ref={dragRef}
+            className="drag-icon"
+            aria-describedby="drag-instructions-transforms"
+            size="sm"
+          >
+            <Draggable />
+          </Button>
+          <span id="drag-instructions-transforms" className="sr-only">
+            To pick up the draggable item, press Enter. While dragging, use the
+            arrow keys to move the item. Press Enter again to leave the item in
+            its new position.
+          </span>
+          <h3 style={{ margin: 0, fontSize: '16px' }}>
+            Draggable with Transforms
+          </h3>
+        </header>
+        <div style={{ padding: '8px' }}>
+          <p style={{ margin: '0 0 8px 0' }}>
+            <strong>Initial transforms:</strong>
+          </p>
+          <ul style={{ margin: 0, paddingLeft: '20px' }}>
+            <li>scale(1.2) - 120% size</li>
+            <li>rotate(5deg) - slight rotation</li>
+          </ul>
+          <p style={{ marginTop: '12px', fontSize: '14px', color: '#525252' }}>
+            Drag this box around. The scale and rotation should be preserved
+            while dragging!
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const DraggableWithTransforms = DraggableWithTransformsTemplate.bind({});
 export const DraggablePopover = DraggablePopoverTemplate.bind({});
