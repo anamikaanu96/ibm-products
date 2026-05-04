@@ -8,10 +8,14 @@
 import { LitElement, html } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { carbonElement as customElement } from '@carbon/web-components/es/globals/decorators/carbon-element';
+import '@carbon/web-components/es/components/button/index.js';
+import '@carbon/web-components/es/components/inline-loading/index.js';
 import '@carbon/web-components/es/components/modal/index.js';
+import '@carbon/ibm-products-web-components/es/components/page-header/index.js';
 import type { Breadcrumb } from './simple-header';
 import type { StepData } from './create-influencer';
 import type { ActionButton } from '@carbon/ibm-products-web-components/es/components/action-set/index.js';
+import '@carbon/ibm-products-web-components/es/components/action-set/index.js';
 import styles from './create-full-page.scss?lit';
 
 const blockClass = 'create-full-page-pattern';
@@ -291,19 +295,10 @@ export class CreateFullPage extends LitElement {
   firstUpdated() {
     this.moveStepsToForm();
     this.showCurrentStep();
-    this.renderActionSet();
   }
 
   updated(changedProperties: Map<string, any>) {
     super.updated(changedProperties);
-    // Update action-set when relevant properties change
-    if (
-      changedProperties.has('currentStep') ||
-      changedProperties.has('isSubmitting') ||
-      changedProperties.has('stepData')
-    ) {
-      this.renderActionSet();
-    }
   }
 
   private moveStepsToForm() {
@@ -318,20 +313,12 @@ export class CreateFullPage extends LitElement {
     }
   }
 
-  private renderActionSet() {
-    const actionSetElement = this.querySelector('action-set') as any;
-    if (actionSetElement) {
-      actionSetElement.actions = this.actions;
-      actionSetElement.requestUpdate();
-    }
-  }
-
   render() {
     return html`
       <div class="${blockClass}">
         ${this.title || this.breadcrumbs.length > 0
           ? html`
-              <simple-header
+              <!-- <simple-header
                 class="${blockClass}__header"
                 title="${this.title}"
                 .breadcrumbs="${this.breadcrumbs}"
@@ -339,7 +326,22 @@ export class CreateFullPage extends LitElement {
                 overflow-aria-label="${this.breadcrumbsOverflowAriaLabel}"
                 overflow-tooltip-align="${this.breadcrumbOverflowTooltipAlign}"
                 max-visible="${this.maxVisibleBreadcrumbs || ''}"
-              ></simple-header>
+              ></simple-header> -->
+              <c4p-page-header class="${blockClass}__header">
+                <c4p-page-header-breadcrumb>
+                  <c4p-page-header-breadcrumbs-set
+                    .breadcrumbsData="${(this.breadcrumbs || []).map((item) => ({
+                      text: item.label,
+                      href: item.href || '#',
+                    }))}"
+                     title="page title"
+                  ></c4p-page-header-breadcrumbs-set>
+                </c4p-page-header-breadcrumb>
+                <c4p-page-header-content title="${this.title}">
+                  <c4p-page-header-content-text>
+                  </c4p-page-header-content-text>
+                </c4p-page-header-content>
+              </c4p-page-header>
             `
           : ''}
 
@@ -364,12 +366,49 @@ export class CreateFullPage extends LitElement {
                   <slot name="steps"></slot>
                 </form>
               </div>
-              <c4p-action-set
-                class="${blockClass}__buttons"
-                .actions="${this.actions}"
-                button-size="2xl"
-                size="2xl"
-              ></c4p-action-set>
+              <div class="${blockClass}__buttons">
+                <c4p-action-set size="xl">
+                  <cds-button
+                    kind="ghost"
+                    size="2xl"
+                    @click="${this.handleCancel}"
+                  >
+                    ${this.cancelButtonText}
+                  </cds-button>
+                  <cds-button
+                    kind="secondary"
+                    size="2xl"
+                    ?disabled="${this.currentStep === 1 || this.isSubmitting}"
+                    @click="${this.handlePrevious}"
+                  >
+                    ${this.backButtonText}
+                  </cds-button>
+                  ${this.isSubmitting
+                    ? html`
+                        <cds-button kind="primary" size="2xl" disabled>
+                          ${this.currentStep === this.totalSteps
+                            ? this.submitButtonText
+                            : this.nextButtonText}
+                          <cds-inline-loading
+                            slot="icon"
+                            aria-live="off"
+                          ></cds-inline-loading>
+                        </cds-button>
+                      `
+                    : html`
+                        <cds-button
+                          kind="primary"
+                          size="2xl"
+                          ?disabled="${this.isNextDisabled}"
+                          @click="${this.handleSubmit}"
+                        >
+                          ${this.currentStep === this.totalSteps
+                            ? this.submitButtonText
+                            : this.nextButtonText}
+                        </cds-button>
+                      `}
+                </c4p-action-set>
+              </div>
             </div>
           </div>
 

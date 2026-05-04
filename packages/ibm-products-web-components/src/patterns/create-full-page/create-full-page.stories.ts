@@ -15,7 +15,7 @@ import '../../../examples/create-full-page/src/create-full-page-with-step-in-err
 import '../../../examples/create-full-page/src/create-full-page-with-global-header';
 
 export default {
-  title: 'Patterns/Step flows/CreateFullPage',
+  title: 'Patterns/Create flows/CreateFullPage',
   parameters: {
     docs: {
       description: {

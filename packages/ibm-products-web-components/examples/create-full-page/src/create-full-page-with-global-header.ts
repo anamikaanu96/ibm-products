@@ -209,22 +209,12 @@ class CreateFullPageWithGlobalHeader extends HostListenerMixin(LitElement) {
              button-label-active="Close menu"
              button-label-inactive="Open menu"
              @click=${this.handleHeaderMenuButtonClick}
+              ?expanded=${false}
            ></cds-header-menu-button>
           
           <cds-header-name href="#" prefix="IBM">
             Products application
           </cds-header-name>
-          
-          <cds-side-nav
-            aria-label="Side navigation"
-            ?expanded=${this.isSideNavExpanded}
-          >
-            <cds-side-nav-items>
-              <cds-side-nav-link href="https://pages.github.ibm.com/carbon/ibm-products/" target="_blank">
-                Sample link: Carbon for IBM Products
-              </cds-side-nav-link>
-            </cds-side-nav-items>
-          </cds-side-nav>
         </cds-header>
         
         <div class="${storyClass}__content-container ${storyClass}__content-container--with-global-header">
