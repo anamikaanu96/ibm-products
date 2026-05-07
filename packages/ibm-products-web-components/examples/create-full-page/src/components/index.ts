@@ -7,7 +7,6 @@
 
 export { CreateFullPage } from './create-full-page';
 export { CreateFullPageStep } from './create-full-page-step';
-export { SimpleHeader } from './simple-header';
 export { CreateInfluencer } from './create-influencer';
 export { BreadcrumbWithOverflow } from './breadcrumb-with-overflow';
 
@@ -15,7 +14,6 @@ export { BreadcrumbWithOverflow } from './breadcrumb-with-overflow';
 import '@carbon/ibm-products-web-components/es/components/action-set/index.js';
 import './create-full-page';
 import './create-full-page-step';
-import './simple-header';
 import './create-influencer';
 import './breadcrumb-with-overflow';
 

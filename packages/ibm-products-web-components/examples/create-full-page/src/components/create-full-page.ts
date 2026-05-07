@@ -318,15 +318,6 @@ export class CreateFullPage extends LitElement {
       <div class="${blockClass}">
         ${this.title || this.breadcrumbs.length > 0
           ? html`
-              <!-- <simple-header
-                class="${blockClass}__header"
-                title="${this.title}"
-                .breadcrumbs="${this.breadcrumbs}"
-                ?no-trailing-slash="${this.noTrailingSlash}"
-                overflow-aria-label="${this.breadcrumbsOverflowAriaLabel}"
-                overflow-tooltip-align="${this.breadcrumbOverflowTooltipAlign}"
-                max-visible="${this.maxVisibleBreadcrumbs || ''}"
-              ></simple-header> -->
               <c4p-page-header class="${blockClass}__header">
                 <c4p-page-header-breadcrumb>
                   <c4p-page-header-breadcrumbs-set
@@ -411,34 +402,38 @@ export class CreateFullPage extends LitElement {
               </div>
             </div>
           </div>
-
-          <cds-modal
-            class="${blockClass}__modal"
-            size="sm"
-            ?open="${this.modalIsOpen}"
-            @cds-modal-closed="${this.handleModalClose}"
-          >
-            <cds-modal-header>
-              <cds-modal-heading>${this.modalTitle}</cds-modal-heading>
-            </cds-modal-header>
-            <cds-modal-body>
-              <p>${this.modalDescription}</p>
-            </cds-modal-body>
-            <cds-modal-footer>
-              <cds-modal-footer-button
-                kind="secondary"
-                @click="${this.handleModalClose}"
-              >
-                ${this.modalSecondaryButtonText}
-              </cds-modal-footer-button>
-              <cds-modal-footer-button
-                kind="danger"
-                @click="${this.handleModalConfirm}"
-              >
-                ${this.modalDangerButtonText}
-              </cds-modal-footer-button>
-            </cds-modal-footer>
-          </cds-modal>
+  
+          ${this.modalIsOpen
+            ? html`
+                <cds-modal
+                  class="${blockClass}__modal"
+                  size="sm"
+                  ?open="${this.modalIsOpen}"
+                  @cds-modal-closed="${this.handleModalClose}"
+                >
+                  <cds-modal-header>
+                    <cds-modal-heading>${this.modalTitle}</cds-modal-heading>
+                  </cds-modal-header>
+                  <cds-modal-body>
+                    <p>${this.modalDescription}</p>
+                  </cds-modal-body>
+                  <cds-modal-footer>
+                    <cds-modal-footer-button
+                      kind="secondary"
+                      @click="${this.handleModalClose}"
+                    >
+                      ${this.modalSecondaryButtonText}
+                    </cds-modal-footer-button>
+                    <cds-modal-footer-button
+                      kind="danger"
+                      @click="${this.handleModalConfirm}"
+                    >
+                      ${this.modalDangerButtonText}
+                    </cds-modal-footer-button>
+                  </cds-modal-footer>
+                </cds-modal>
+              `
+            : ''}
         </div>
       </div>
     `;
